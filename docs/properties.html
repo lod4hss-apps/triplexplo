@@ -26,7 +26,7 @@ start(async () => {
                  `OPTIONAL { ?o a ?rc . FILTER(isIRI(?rc)) }`;
     const rows = await select(
       `SELECT ?dc ?p ?rc ?g (COUNT(*) AS ?n) WHERE { ${inGraphs(currentSel(), body)} } ` +
-      `GROUP BY ?dc ?p ?rc ?g ORDER BY ?dc ?p ?rc ?g LIMIT ${MAX_ROWS}`);
+      `GROUP BY ?dc ?p ?rc ?g ORDER BY DESC(?n) ?dc ?p ?rc ?g LIMIT ${MAX_ROWS}`);
     const labels = await fetchLabels(rows.flatMap(r => [r.dc.value, r.p.value, r.rc ? r.rc.value : null]));
 
     // Label on top (normal size), IRI below in small grey text; without a label the IRI is shown alone.
@@ -47,7 +47,7 @@ start(async () => {
         <h2>Properties (${rows.length}${rows.length >= MAX_ROWS ? '+' : ''} domain–property–range–graph groups)</h2>
         ${filterInput()}
         <table>
-          <thead><tr><th class="sortable">Domain class</th><th class="sortable">Property</th><th class="sortable">Range class</th><th>Named graph</th><th class="num sortable" data-type="num">Triples</th></tr></thead>
+          <thead><tr><th class="sortable">Domain class</th><th class="sortable">Property</th><th class="sortable">Range class</th><th>Named graph</th><th class="num sortable" data-type="num" data-dir="desc">Triples</th></tr></thead>
           <tbody>${rows.map(r => `
             <tr>
               <td data-v="${key(r.dc.value)}">${cell(r.dc.value, true)}</td>

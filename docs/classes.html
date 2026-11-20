@@ -21,14 +21,14 @@ start(async () => {
     const rows = await select(
       `SELECT ?class ?g (COUNT(?s) AS ?n) WHERE { ` +
       `${inGraphs(currentSel(), '?s a ?class . FILTER(isIRI(?class))')} } ` +
-      `GROUP BY ?class ?g ORDER BY ?class ?g LIMIT 5000`);
+      `GROUP BY ?class ?g ORDER BY DESC(?n) ?class ?g LIMIT 5000`);
     const labels = await fetchLabels(rows.map(r => r.class.value));
     out.innerHTML = `
       <section>
         <h2>Classes (${rows.length}${rows.length >= 5000 ? '+' : ''} class–graph groups)</h2>
         ${filterInput()}
         <table>
-          <thead><tr><th class="sortable">Class</th><th class="sortable">Label</th><th>Named graph</th><th class="num sortable" data-type="num">Instances</th></tr></thead>
+          <thead><tr><th class="sortable">Class</th><th class="sortable">Label</th><th>Named graph</th><th class="num sortable" data-type="num" data-dir="desc">Instances</th></tr></thead>
           <tbody>${rows.map(r => `
             <tr>
               <td data-v="${esc(r.class.value.toLowerCase())}">${iriLink(r.class.value, r.class.value, 'class.html')}</td>

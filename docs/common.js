@@ -1,7 +1,8 @@
 'use strict';
-// Requires config.js (FIXED_TRIPLESTORE_URL, ENDPOINT, LABEL_LANGS, PAGE_SIZE) to be loaded first.
+// Requires config.js (FIXED_TRIPLESTORE_URL, ENDPOINT, LABEL_PROPS, LABEL_LANGS, PAGE_SIZE) to be loaded first.
 
-const LABEL_PROP = '<http://www.w3.org/2000/01/rdf-schema#label>';
+// SPARQL fragment binding ?lp to every configured label property
+const labelValues = () => `VALUES ?lp { ${LABEL_PROPS.map(p => `<${p}>`).join(' ')} }`;
 const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 
 /* ---------- small helpers ---------- */
@@ -105,7 +106,8 @@ function inGraphs(sel, body) {
   return `${values} GRAPH ?g { ${body} }`;
 }
 
-// Optional rdfs:label for a set of IRIs, looked up in any graph. Returns Map(iri -> label)
+// Optional label for a set of IRIs (any property in LABEL_PROPS, any graph); one label per IRI:
+// best property rank first, then best language rank. Returns Map(iri -> label)
 async function fetchLabels(iris) {
   const best = new Map(), rank = new Map();
   const uniq = [...new Set(iris)].filter(Boolean);
@@ -115,12 +117,15 @@ async function fetchLabels(iris) {
     const values = chunk.map(x => `<${x}>`).join(' ');
     try {
       const rows = await select(
-        `SELECT ?s ?l WHERE { VALUES ?s { ${values} } ` +
-        `{ ?s ${LABEL_PROP} ?l } UNION { GRAPH ?lg { ?s ${LABEL_PROP} ?l } } }`);
+        `SELECT ?s ?lp ?l WHERE { VALUES ?s { ${values} } ${labelValues()} ` +
+        `{ ?s ?lp ?l } UNION { GRAPH ?lg { ?s ?lp ?l } } }`);
       for (const r of rows) {
         const lang = (r.l['xml:lang'] || '').toLowerCase().split('-')[0];
         let k = LABEL_LANGS.indexOf(lang);
         if (k < 0) k = LABEL_LANGS.length;
+        let pi = LABEL_PROPS.indexOf(r.lp.value);
+        if (pi < 0) pi = LABEL_PROPS.length;
+        k += pi * 1000;  // property priority outweighs language priority
         if (!best.has(r.s.value) || k < rank.get(r.s.value)) {
           best.set(r.s.value, r.l.value);
           rank.set(r.s.value, k);

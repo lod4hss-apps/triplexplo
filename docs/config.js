@@ -10,6 +10,13 @@ const FIXED_TRIPLESTORE_URL = false;
 
 const ENDPOINT = '';  // SPARQL endpoint URL, e.g. 'http://localhost:9091/rdf4j-server/repositories/myrepo' (must allow CORS)
 
+// Label properties, in order of priority: for each entity only ONE label is shown, taken from the
+// first property in this list that has a value (then by language, see LABEL_LANGS below).
+const LABEL_PROPS = [
+  'http://www.w3.org/2000/01/rdf-schema#label',
+  'https://sdhss.org/ontology/shortcuts/P9'
+];
+
 // Preferred label languages, in order ('' = untagged label; other languages are used last)
 const LABEL_LANGS = ['en', 'fr', 'de', ''];
 
