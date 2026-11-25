@@ -22,3 +22,9 @@ const LABEL_LANGS = ['en', 'fr', 'de', ''];
 
 // Rows per page on the instance list (class.html)
 const PAGE_SIZE = 50;
+
+// Link from the entity page to matgui: the "SPARQL" buttons open MATGUI_URL with the triplestore URL and
+// the query as URL parameters (parameter names below). Path is relative to entity.html.
+const MATGUI_URL = './matgui/index.html';
+const MATGUI_PARAM_TRIPLESTORE = 'endpoint';  // spelled as expected by matgui
+const MATGUI_PARAM_QUERY = 'query';
